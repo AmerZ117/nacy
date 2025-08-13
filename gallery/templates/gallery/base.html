@@ -322,20 +322,28 @@
     </footer>
 
     <!-- Background Music Player -->
-    {% if background_music %}
     <div class="music-player">
-        <audio id="background-music" loop>
-            <source src="{{ background_music.url }}" type="audio/mpeg">
+        <audio id="background-music" loop autoplay preload="auto" muted>
+            {% if background_music %}
+                <source src="{{ background_music.url }}" type="audio/mpeg">
+            {% else %}
+                <source src="/static/audio/background-music.mp3" type="audio/mpeg">
+            {% endif %}
             Your browser does not support the audio element.
         </audio>
         <button id="music-toggle" class="music-toggle" title="Toggle Music">
             <i class="fas fa-music"></i>
         </button>
         <div class="music-info">
-            <span class="music-title">{{ background_music.title }}</span>
+            <span class="music-title">
+                {% if background_music %}
+                    {{ background_music.title }}
+                {% else %}
+                    Background Music
+                {% endif %}
+            </span>
         </div>
     </div>
-    {% endif %}
 
     <!-- AOS Animation Script -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -352,41 +360,139 @@
             const musicToggle = document.getElementById('music-toggle');
             const musicInfo = document.querySelector('.music-info');
             
-            // Try to autoplay music (may be blocked by browser)
-            audio.volume = 0.3; // Set volume to 30%
-            
-            // Handle music toggle
-            musicToggle.addEventListener('click', function() {
-                if (audio.paused) {
-                    audio.play();
-                    musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
-                    musicInfo.style.opacity = '1';
-                } else {
-                    audio.pause();
-                    musicToggle.innerHTML = '<i class="fas fa-play"></i>';
-                    musicInfo.style.opacity = '0.7';
-                }
-            });
-            
-            // Handle audio events
-            audio.addEventListener('play', function() {
-                musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
-                musicInfo.style.opacity = '1';
-            });
-            
-            audio.addEventListener('pause', function() {
-                musicToggle.innerHTML = '<i class="fas fa-play"></i>';
-                musicInfo.style.opacity = '0.7';
-            });
-            
-            // Try to autoplay when user interacts with the page
-            document.addEventListener('click', function() {
-                if (audio.paused) {
-                    audio.play().catch(function(error) {
-                        console.log('Autoplay prevented:', error);
+            if (audio) {
+                // Set audio properties for autoplay and looping
+                audio.volume = 0.4; // Set volume to 40%
+                audio.loop = true; // Ensure looping is enabled
+                audio.preload = 'auto'; // Preload the audio
+                audio.muted = false; // Unmute the audio
+                
+                // Multiple autoplay attempts with different strategies
+                function attemptAutoplay() {
+                    // Strategy 1: Direct autoplay
+                    audio.play().then(function() {
+                        console.log('Music started playing automatically');
+                        musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                        musicInfo.style.opacity = '1';
+                    }).catch(function(error) {
+                        console.log('Direct autoplay failed:', error);
+                        
+                        // Strategy 2: Try with user interaction
+                        document.addEventListener('click', function startMusic() {
+                            audio.play().then(function() {
+                                console.log('Music started after user interaction');
+                                musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                                musicInfo.style.opacity = '1';
+                            }).catch(function(error) {
+                                console.log('User interaction autoplay failed:', error);
+                            });
+                            document.removeEventListener('click', startMusic);
+                        }, { once: true });
+                        
+                        // Strategy 3: Try with scroll interaction
+                        document.addEventListener('scroll', function startMusic() {
+                            audio.play().then(function() {
+                                console.log('Music started after scroll');
+                                musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                                musicInfo.style.opacity = '1';
+                            }).catch(function(error) {
+                                console.log('Scroll autoplay failed:', error);
+                            });
+                            document.removeEventListener('scroll', startMusic);
+                        }, { once: true });
+                        
+                        // Strategy 4: Try with touch interaction (mobile)
+                        document.addEventListener('touchstart', function startMusic() {
+                            audio.play().then(function() {
+                                console.log('Music started after touch');
+                                musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                                musicInfo.style.opacity = '1';
+                            }).catch(function(error) {
+                                console.log('Touch autoplay failed:', error);
+                            });
+                            document.removeEventListener('touchstart', startMusic);
+                        }, { once: true });
                     });
                 }
-            }, { once: true });
+                
+                // Attempt autoplay immediately
+                attemptAutoplay();
+                
+                // Also try after a short delay
+                setTimeout(attemptAutoplay, 1000);
+                
+                // Try again after page is fully loaded
+                window.addEventListener('load', function() {
+                    setTimeout(attemptAutoplay, 500);
+                });
+                
+                // Try to resume music when page becomes visible (tab switching)
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden && audio.paused) {
+                        setTimeout(attemptAutoplay, 100);
+                    }
+                });
+                
+                // Handle music toggle
+                musicToggle.addEventListener('click', function() {
+                    if (audio.paused) {
+                        audio.play().then(function() {
+                            musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                            musicInfo.style.opacity = '1';
+                            localStorage.setItem('musicPlaying', 'true');
+                        });
+                    } else {
+                        audio.pause();
+                        musicToggle.innerHTML = '<i class="fas fa-play"></i>';
+                        musicInfo.style.opacity = '0.7';
+                        localStorage.setItem('musicPlaying', 'false');
+                    }
+                });
+                
+                // Check if music was playing before and resume
+                if (localStorage.getItem('musicPlaying') === 'true') {
+                    setTimeout(function() {
+                        audio.play().then(function() {
+                            musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                            musicInfo.style.opacity = '1';
+                        }).catch(function(error) {
+                            console.log('Resume from localStorage failed:', error);
+                        });
+                    }, 1000);
+                }
+                
+                // Handle audio events
+                audio.addEventListener('play', function() {
+                    musicToggle.innerHTML = '<i class="fas fa-pause"></i>';
+                    musicInfo.style.opacity = '1';
+                });
+                
+                audio.addEventListener('pause', function() {
+                    musicToggle.innerHTML = '<i class="fas fa-play"></i>';
+                    musicInfo.style.opacity = '0.7';
+                });
+                
+                // Handle audio errors
+                audio.addEventListener('error', function(e) {
+                    console.error('Audio error:', e);
+                });
+                
+                // Ensure music continues playing when page becomes visible
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden && audio.paused) {
+                        audio.play().catch(function(error) {
+                            console.log('Resume after visibility change failed:', error);
+                        });
+                    }
+                });
+                
+                // Try to keep music playing during page navigation
+                window.addEventListener('beforeunload', function() {
+                    if (!audio.paused) {
+                        localStorage.setItem('musicPlaying', 'true');
+                    }
+                });
+            }
         });
     </script>
 </body>
