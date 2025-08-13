@@ -37,6 +37,12 @@ if os.environ.get('RAILWAY_STATIC_URL'):
 if os.environ.get('RAILWAY_PUBLIC_DOMAIN'):
     ALLOWED_HOSTS.append(os.environ.get('RAILWAY_PUBLIC_DOMAIN'))
 
+# Add specific Railway domain for this deployment
+ALLOWED_HOSTS.append('ilovnacysomach.up.railway.app')
+
+# Add wildcard for Railway subdomains (more flexible approach)
+ALLOWED_HOSTS.append('*.up.railway.app')
+
 
 # Application definition
 
