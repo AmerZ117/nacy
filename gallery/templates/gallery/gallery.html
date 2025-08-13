@@ -1,0 +1,402 @@
+{% extends 'gallery/base.html' %}
+
+{% block title %}Our Beautiful Memories - Gallery{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Gallery Header -->
+    <section class="gallery-header" data-aos="fade-up">
+        <h1 class="section-title">
+            <i class="fas fa-heart heart"></i>
+            Our Beautiful Memories
+            <i class="fas fa-heart heart"></i>
+        </h1>
+        <p class="gallery-subtitle">Every photo and video tells a story of our love</p>
+    </section>
+
+    <!-- Gallery Navigation -->
+    <section class="gallery-nav" data-aos="fade-up" data-aos-delay="200">
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-filter="all">
+                <i class="fas fa-th"></i> All Memories
+            </button>
+            <button class="nav-tab" data-filter="photos">
+                <i class="fas fa-image"></i> Photos ({{ images|length }})
+            </button>
+            <button class="nav-tab" data-filter="videos">
+                <i class="fas fa-video"></i> Videos ({{ videos|length }})
+            </button>
+        </div>
+    </section>
+
+    <!-- Photos Section -->
+    {% if images %}
+    <section class="photos-section" data-aos="fade-up" data-aos-delay="300">
+        <h2 class="section-subtitle">Beautiful Photos of My Beloved Gefen</h2>
+        <div class="photos-grid" data-filter="photos">
+            {% for image in images %}
+            <div class="photo-item" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+                <div class="photo-card">
+                    <img src="{{ image.url }}" alt="{{ image.title }}" class="photo-image" loading="lazy">
+                    <div class="photo-overlay">
+                        <div class="photo-info">
+                            <h3 class="photo-title">{{ image.title }}</h3>
+                            <button class="photo-btn" onclick="openLightbox('{{ image.url }}', '{{ image.title }}')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Videos Section -->
+    {% if videos %}
+    <section class="videos-section" data-aos="fade-up" data-aos-delay="400">
+        <h2 class="section-subtitle">Precious Videos of My Beloved Gefen</h2>
+        <div class="videos-grid" data-filter="videos">
+            {% for video in videos %}
+            <div class="video-item" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+                <div class="video-card">
+                    <video class="video-player" controls preload="metadata">
+                        <source src="{{ video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-info">
+                        <h3 class="video-title">{{ video.title }}</h3>
+                        <p class="video-description">A beautiful moment captured forever by Amer</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox">
+    <div class="lightbox-content">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-image" src="" alt="">
+        <div class="lightbox-caption"></div>
+    </div>
+</div>
+
+<style>
+    .gallery-header {
+        text-align: center;
+        padding: 2rem 0;
+    }
+
+    .gallery-subtitle {
+        font-size: 1.2rem;
+        color: white;
+        margin-top: 1rem;
+        font-weight: 300;
+    }
+
+    .gallery-nav {
+        margin-bottom: 3rem;
+    }
+
+    .nav-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .nav-tab {
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-tab.active {
+        background: linear-gradient(45deg, #e91e63, #ff6b9d);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .nav-tab:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .section-subtitle {
+        font-family: 'Dancing Script', cursive;
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #e91e63;
+    }
+
+    .photos-section, .videos-section {
+        margin-bottom: 4rem;
+    }
+
+    .photos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .photo-item {
+        position: relative;
+    }
+
+    .photo-card {
+        position: relative;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        background: white;
+    }
+
+    .photo-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .photo-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .photo-card:hover .photo-image {
+        transform: scale(1.05);
+    }
+
+    .photo-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        padding: 2rem 1rem 1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .photo-card:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .photo-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .photo-title {
+        color: white;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .photo-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .photo-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .videos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+
+    .video-item {
+        position: relative;
+    }
+
+    .video-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .video-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .video-player {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+
+    .video-info {
+        padding: 1.5rem;
+    }
+
+    .video-title {
+        color: #333;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .video-description {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* Lightbox Styles */
+    .lightbox {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(5px);
+    }
+
+    .lightbox-content {
+        position: relative;
+        margin: auto;
+        padding: 20px;
+        width: 90%;
+        max-width: 800px;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 2001;
+    }
+
+    .lightbox-close:hover {
+        color: #e91e63;
+    }
+
+    #lightbox-image {
+        max-width: 100%;
+        max-height: 80%;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+
+    .lightbox-caption {
+        color: white;
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .nav-tabs {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .photos-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .videos-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-subtitle {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<script>
+    // Gallery filtering
+    document.addEventListener('DOMContentLoaded', function() {
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const sections = document.querySelectorAll('[data-filter]');
+        
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Update active tab
+                navTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show/hide sections
+                sections.forEach(section => {
+                    if (filter === 'all' || section.getAttribute('data-filter') === filter) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+
+    // Lightbox functionality
+    function openLightbox(imageSrc, title) {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightbox-image');
+        const lightboxCaption = document.querySelector('.lightbox-caption');
+        
+        lightboxImage.src = imageSrc;
+        lightboxCaption.textContent = title;
+        lightbox.style.display = 'block';
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Close lightbox
+    document.querySelector('.lightbox-close').addEventListener('click', function() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+
+    // Close lightbox when clicking outside
+    document.getElementById('lightbox').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Close lightbox with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('lightbox').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+</script>
+{% endblock %}
